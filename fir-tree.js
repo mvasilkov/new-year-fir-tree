@@ -18,12 +18,12 @@ if (typeof requestAnimationFrame != 'function') {
         scene = [],
         /* Rendering */
         offsetX = 250,
-        offsetY = 310,
+        offsetY = 300,
         scaleX = 400,
         scaleY = 400,
         camX = 0,
         camY = 2,
-        camZ = -3,
+        camZ = -Math.PI,
         cSize = 500,
         c = canvas.getContext('2d')
 
@@ -31,7 +31,8 @@ if (typeof requestAnimationFrame != 'function') {
     c.lineWidth = 1.44
 
     scene.push(new Coil({ color: '255,0,0', theta0: Math.PI }))
-    scene.push(new Coil({ color: '100,200,255' }))
+    scene.push(new Coil({ color: '100,200,255', theta0: Math.PI / 3 }))
+    scene.push(new Coil({ color: '200,255,100', theta0: -Math.PI / 3 }))
 
     requestAnimationFrame(paint)
 
