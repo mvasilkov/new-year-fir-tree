@@ -65,12 +65,22 @@ if (typeof requestAnimationFrame != 'function') {
 
     Coil.prototype.paint = function (offset) {
         var theta = this.thetaDif(0, offset * this.lineSpacing),
-            begin, end
+            begin, end, i = 0
+        this._lineCache = []
         for (; theta < thetaEnd; theta += this.thetaDif(theta, this.lineSpacing)) {
             begin = this.getPoint(theta)
             end = this.getPoint(theta + this.thetaDif(theta, this.lineLength))
             this.line(begin, end)
         }
+        /* Rendering-2 */
+        c.beginPath()
+        for (; i < this._lineCache.length; ++i) {
+            var frag = this._lineCache[i]
+            c.moveTo(frag[0], frag[1])
+            c.lineTo(frag[2], frag[3])
+        }
+        c.strokeStyle = 'rgb(' + this.color + ')'
+        c.stroke()
     }
 
     Coil.prototype.thetaDif = function (theta, length) {
@@ -88,7 +98,11 @@ if (typeof requestAnimationFrame != 'function') {
         var opacity = 0.24 + 0.76 * pow3(Math.min(0.96 + begin[2], 1))
         begin = project(begin)
         end = project(end)
-        /* Actual rendering */
+        if (opacity == 1) {
+            this._lineCache.push([begin[0], begin[1], end[0], end[1]])
+            return
+        }
+        /* Rendering-1 */
         c.beginPath()
         c.moveTo(begin[0], begin[1])
         c.lineTo(end[0], end[1])
