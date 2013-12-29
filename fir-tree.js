@@ -4,7 +4,7 @@ if (typeof requestAnimationFrame != 'function') {
         return typeof f == 'function'? (requestAnimationFrame = f): false
     }) || (requestAnimationFrame = function (f) {
         return setTimeout(f, 0)
-    })
+    }) /* jshint -W030 */
 }
 
 (function (canvas) {
@@ -15,8 +15,6 @@ if (typeof requestAnimationFrame != 'function') {
         rate = 1 / (2 * Math.PI),
         factor = rate / 3,
         cycle = 200,
-        opacityMin = 0.69,
-        opacityDif = 48,
         scene = [],
         /* Rendering */
         offsetX = 250,
@@ -54,6 +52,8 @@ if (typeof requestAnimationFrame != 'function') {
         return (val < a)? a: (val > b)? b: val
     }
 
+    function pow3(a) { return a * a * a }
+
     function Coil(options) {
         this.color       = options.color       || '255,255,255'
         this.theta0      = options.theta0      || 0
@@ -85,9 +85,7 @@ if (typeof requestAnimationFrame != 'function') {
     }
 
     Coil.prototype.line = function (begin, end) {
-        var opacity = Math.atan((0.1 * begin[1] * this.factor / this.rate +
-                                 0.02 + begin[2]) * opacityDif)
-        opacity = clamp(opacityMin + (1 - opacityMin) * opacity, 0, 1)
+        var opacity = 0.24 + 0.76 * pow3(Math.min(0.96 + begin[2], 1))
         begin = project(begin)
         end = project(end)
         /* Actual rendering */
