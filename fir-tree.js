@@ -62,26 +62,41 @@ if (typeof requestAnimationFrame != 'function') {
         this.lineLength  = options.lineLength  || lineLength
         this.rate        = options.rate        || rate
         this.factor      = options.factor      || factor
+        this.cache       = {}
     }
 
     Coil.prototype.paint = function (offset) {
+        var cache = this.cache[offset] ||
+            (this.cache[offset] = this.compute(offset))
+
+        /* Rendering-1 */
+        cache[0].forEach(function (b) {
+            c.beginPath()
+            c.moveTo(b[0], b[1])
+            c.lineTo(b[2], b[3])
+            c.strokeStyle = 'rgba(' + this.color + ',' + b[4] + ')'
+            c.stroke()
+        }, this)
+
+        /* Rendering-2 */
+        c.beginPath()
+        cache[1].forEach(function (b) {
+            c.moveTo(b[0], b[1])
+            c.lineTo(b[2], b[3])
+        })
+        c.strokeStyle = 'rgb(' + this.color + ')'
+        c.stroke()
+    }
+
+    Coil.prototype.compute = function (offset) {
         var theta = this.thetaDif(0, offset * this.lineSpacing),
-            begin, end, i = 0
-        this._lineCache = []
+            begin, end, cache0 = [], cache1 = [], i = 0
         for (; theta < thetaEnd; theta += this.thetaDif(theta, this.lineSpacing)) {
             begin = this.getPoint(theta)
             end = this.getPoint(theta + this.thetaDif(theta, this.lineLength))
-            this.line(begin, end)
+            this.line(begin, end, cache0, cache1)
         }
-        /* Rendering-2 */
-        c.beginPath()
-        for (; i < this._lineCache.length; ++i) {
-            var frag = this._lineCache[i]
-            c.moveTo(frag[0], frag[1])
-            c.lineTo(frag[2], frag[3])
-        }
-        c.strokeStyle = 'rgb(' + this.color + ')'
-        c.stroke()
+        return [cache0, cache1]
     }
 
     Coil.prototype.thetaDif = function (theta, length) {
@@ -95,19 +110,20 @@ if (typeof requestAnimationFrame != 'function') {
                 theta * this.factor * Math.sin(this.theta0 + theta)]
     }
 
-    Coil.prototype.line = function (begin, end) {
+    Coil.prototype.line = function (begin, end, cache0, cache1) {
         var opacity = 0.24 + 0.76 * pow3(clamp(0.96 + 5.56 * begin[2], 0, 1))
         begin = project(begin)
         end = project(end)
-        if (opacity == 1) {
-            this._lineCache.push([begin[0], begin[1], end[0], end[1]])
-            return
-        }
-        /* Rendering-1 */
-        c.beginPath()
-        c.moveTo(begin[0], begin[1])
-        c.lineTo(end[0], end[1])
-        c.strokeStyle = 'rgba(' + this.color + ',' + opacity + ')'
-        c.stroke()
+        if (opacity == 1) cache1.push([begin[0], begin[1], end[0], end[1]])
+        else cache0.push([begin[0], begin[1], end[0], end[1], opacity])
     }
+
+    /* Warm up */
+    scene.forEach(function (obj) {
+        var offset, i = 0
+        for (; i < 200; ++i) {
+            offset = 1 - i / cycle % 1
+            obj.cache[offset] = obj.compute(offset)
+        }
+    })
 }(document.getElementsByTagName('canvas')[0]))
