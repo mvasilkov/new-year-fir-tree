@@ -96,7 +96,7 @@ if (typeof requestAnimationFrame != 'function') {
     }
 
     Coil.prototype.line = function (begin, end) {
-        var opacity = 0.24 + 0.76 * pow3(Math.min(0.96 + begin[2], 1))
+        var opacity = 0.24 + 0.76 * pow3(clamp(0.96 + 5.56 * begin[2], 0, 1))
         begin = project(begin)
         end = project(end)
         if (opacity == 1) {
